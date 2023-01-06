@@ -1,6 +1,6 @@
-import express from "express";
-import bodyParser from "body-parser";
-import authRouter from "./routes/auth.js";
+const express = require("express");
+const bodyParser = require("body-parser");
+const authRouter = require("./routes/auth.js");
 
 const app = express();
 

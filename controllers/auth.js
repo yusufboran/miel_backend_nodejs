@@ -1,42 +1,39 @@
-import { v4 as uuidV4 } from "uuid";
-
 let users = [
   {
     name: "jhon",
     age: 20,
-    id: uuidV4(),
+    id: 1,
   },
   {
     name: "amanda",
     age: 22,
-    id: uuidV4(),
+    id: 2,
   },
   {
     name: "rick",
     age: 120,
-    id: uuidV4(),
+    id: 3,
   },
 ];
 
-export const getUser = function (req, res) {
-    var userId = req.body.id
+exports.getUser = function (req, res) {
+  var userId = req.body.id;
 
-    
   res.json(users);
 };
 
-export const register = function (req, res) {
-  const { name, age } = req.body;
+exports.register = function (req, res) {
+  const { username, password } = req.body;
 
   users.push({
-    name,
-    age,
-    id: uuidV4(),
+    username,
+    password,
+    id: Date.now(),
   });
 
   res.json(users);
 };
-export const login = function (req, res) {
+exports.login = function (req, res) {
   const userId = req.params.id;
 
   const user = users.find(function (user) {
@@ -46,7 +43,7 @@ export const login = function (req, res) {
   res.json(user);
 };
 
-export const deleteUser = function (req, res) {
+exports.deleteUser = function (req, res) {
   const userId = req.params.id;
 
   users = users.filter(function (user) {
@@ -56,7 +53,7 @@ export const deleteUser = function (req, res) {
   res.json(users);
 };
 
-export const updateUser = function (req, res) {
+exports.updateUser = function (req, res) {
   const userId = req.params.id;
   const { age, name } = req.body;
 
