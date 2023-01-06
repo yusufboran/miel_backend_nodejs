@@ -1,18 +1,13 @@
-import express from "express"
-import bodyParser from "body-parser"
-import userRouter from "./routes/user.js"
+import express from "express";
+import bodyParser from "body-parser";
+import authRouter from "./routes/auth.js";
 
+const app = express();
 
-const app = express()
+app.use(bodyParser.json());
 
+app.use("/api/v1/auth", authRouter);
 
-app.use(bodyParser.json())
-
-
-app.use('/api', userRouter)
-
-app.listen(3000, function() {
-    console.log('Hey server is running on port 3000');
-})
-
-
+app.listen(3000, function () {
+  console.log("Hey server is running on port 3000");
+});
