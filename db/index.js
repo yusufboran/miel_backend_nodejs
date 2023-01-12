@@ -14,3 +14,6 @@ client.connect((err) => {
     console.log("connected");
   }
 });
+
+
+module.exports = client;
