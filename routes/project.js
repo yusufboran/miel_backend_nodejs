@@ -3,7 +3,7 @@ const express = require("express");
 const {
   getProject,
   createProject,
-  register,
+  upload,
   deleteUser,
   updateUser,
 } = require("../controllers/project.js");
@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/", getProject);
 router.post("/", createProject);
-router.post("/register", register);
+router.post("/upload", upload);
 router.delete("/", deleteUser);
 router.put("/", updateUser);
 
