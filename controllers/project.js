@@ -1,13 +1,25 @@
 const client = require("../db");
+var { unlink } = require("node:fs");
+const multer = require("multer");
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const multer = require("multer");
 const path = require("path");
 const shell = require("shelljs");
 
-const filePath = `deneme`;
 exports.getProject = function (req, res) {
   return res.json("Post has been created.");
+};
+
+exports.getProjectList = async function (req, res) {
+  try {
+    var sql = `select * from project `;
+    const result = await client.query(sql);
+    res.status(200).send(result.rows);
+  } catch (err) {
+    console.log(err.stack);
+    res.status(500).send("Error occurred while creating project");
+  }
 };
 
 exports.upload = async function (req, res) {
@@ -26,7 +38,7 @@ exports.createProject = async function (req, res) {
 
   const values = [projectName, descriptionEN, descriptionTR, features, paths];
   const sql =
-    "INSERT INTO project (projectname,descriptionen,descriptiontr,features, paths) VALUES ($1, $2, $3, $4, $5)";
+    "INSERT INTO project (projectname,descriptionen,descriptiontr,features, paths,created_at ) VALUES ($1, $2, $3, $4, $5,now())";
 
   try {
     const result = await client.query(sql, values);
@@ -37,8 +49,32 @@ exports.createProject = async function (req, res) {
   }
 };
 
-exports.deleteUser = function (req, res) {
-  res.json("deleteUser");
+exports.deleteProject = async function (req, res) {
+  const { id } = req.body;
+
+  if (!id) {
+    return res.status(400).send("All input is required");
+  }
+
+  try {
+    const result = await client.query(
+      `select paths from project where id =${id}`
+    );
+    console.log(result.rows[0].paths);
+
+    result.rows[0].paths.map((path) => {
+      unlink(`./uploads/${path}`, (err) => {
+        if (err) throw err;
+        console.log("delete successfully deleted project");
+      });
+    });
+
+    await client.query(`DELETE from project where id =${id}`);
+    res.status(200).send("successfully deleteProject");
+  } catch (err) {
+    console.log(err.stack);
+    res.status(500).send("Error occurred while creating project");
+  }
 };
 
 exports.updateUser = function (req, res) {
@@ -48,7 +84,7 @@ exports.updateUser = function (req, res) {
 // Uploaded functions
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "deneme");
+    cb(null, "uploads");
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname);

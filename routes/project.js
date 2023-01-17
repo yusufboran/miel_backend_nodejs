@@ -2,18 +2,20 @@ const express = require("express");
 
 const {
   getProject,
+  getProjectList,
   createProject,
   upload,
-  deleteUser,
+  deleteProject,
   updateUser,
 } = require("../controllers/project.js");
 
 const router = express.Router();
 
-router.get("/", getProject);
+router.get("/", getProjectList);
+router.get("/:id", getProject);
 router.post("/", createProject);
 router.post("/upload", upload);
-router.delete("/", deleteUser);
+router.delete("/", deleteProject);
 router.put("/", updateUser);
 
 module.exports = router;
