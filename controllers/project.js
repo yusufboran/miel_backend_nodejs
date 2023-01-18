@@ -7,8 +7,28 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const shell = require("shelljs");
 
-exports.getProject = function (req, res) {
-  return res.json("Post has been created.");
+exports.getProject = async function (req, res) {
+  const { id } = req.params;
+  console.log("getProject");
+  if (!id) {
+    return res.status(400).send("All input is required");
+  }
+
+  try {
+    var sql = `select paths from project where pid ='${id}'`;
+    console.log(sql);
+
+    const result = await client.query(sql);
+    console.log(result.rows[0].paths);
+
+    res.status(200).json({
+      messega: "successfully deleteProject",
+      data: result.rows[0].paths,
+    });
+  } catch (err) {
+    console.log(err.stack);
+    res.status(500).send("Error occurred while creating project");
+  }
 };
 
 exports.getProjectList = async function (req, res) {
@@ -36,9 +56,18 @@ exports.createProject = async function (req, res) {
     return res.status(400).send("All input is required");
   }
 
-  const values = [projectName, descriptionEN, descriptionTR, features, paths];
+  var pid = Date.now().toString(16).toUpperCase();
+
+  const values = [
+    projectName,
+    descriptionEN,
+    descriptionTR,
+    features,
+    paths,
+    pid,
+  ];
   const sql =
-    "INSERT INTO project (projectname,descriptionen,descriptiontr,features, paths,created_at ) VALUES ($1, $2, $3, $4, $5,now())";
+    "INSERT INTO project (projectname,descriptionen,descriptiontr,features, paths,created_at ,pid) VALUES ($1, $2, $3, $4, $5,now(),$6)";
 
   try {
     const result = await client.query(sql, values);
@@ -51,15 +80,15 @@ exports.createProject = async function (req, res) {
 
 exports.deleteProject = async function (req, res) {
   const { id } = req.body;
-
+console.log(req.body)
   if (!id) {
     return res.status(400).send("All input is required");
   }
-
   try {
-    const result = await client.query(
-      `select paths from project where id =${id}`
-    );
+    var sql = `select paths from project where pid ='${id}'`;
+    console.log(sql);
+
+    const result = await client.query(sql);
     console.log(result.rows[0].paths);
 
     result.rows[0].paths.map((path) => {
@@ -69,7 +98,7 @@ exports.deleteProject = async function (req, res) {
       });
     });
 
-    await client.query(`DELETE from project where id =${id}`);
+    await client.query(`DELETE from project where pid ='${id}'`);
     res.status(200).send("successfully deleteProject");
   } catch (err) {
     console.log(err.stack);
