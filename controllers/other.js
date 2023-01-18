@@ -79,9 +79,9 @@ exports.createSocialMedia = async function (req, res) {
   }
 
   try {
-
     const values = [socialmedia, username];
-    const sql = "INSERT INTO socialmedialist (socialmedia, username) VALUES ($1, $2)";
+    const sql =
+      "INSERT INTO socialmedialist (socialmedia, username) VALUES ($1, $2)";
     const result = await client.query(sql, values);
     res.status(200).send("successfully created location");
   } catch (err) {
@@ -110,11 +110,71 @@ exports.updateSocialMedia = async function (req, res) {
   }
   try {
     const values = [socialmedia, username, id];
-    const sql = "UPDATE socialmedialist SET socialmedia=$1, username=$2 WHERE id=$3";
+    const sql =
+      "UPDATE socialmedialist SET socialmedia=$1, username=$2 WHERE id=$3";
     const result = await client.query(sql, values);
     res.status(200).send("successfully created location");
   } catch (err) {
     console.log(err.stack);
     res.status(500).send("Error occurred while creating social media event");
+  }
+};
+
+//features
+exports.getFeatures = async function (req, res) {
+  try {
+    var sql = `select * from features `;
+    const result = await client.query(sql);
+    res.status(200).send(result.rows);
+  } catch (err) {
+    console.log(err.stack);
+    res.status(500).send("Error occurred while creating features");
+  }
+};
+exports.createFeatures = async function (req, res) {
+  const { title, trtext, entext } = req.body;
+
+  if (!(title && trtext && entext)) {
+    return res.status(400).send("All input is required");
+  }
+
+  try {
+    const values = [title, trtext, entext];
+    const sql =
+      "INSERT INTO features (title, trtext,entext) VALUES ($1, $2,$3)";
+    const result = await client.query(sql, values);
+    res.status(200).send("successfully created location");
+  } catch (err) {
+    console.log(err.stack);
+    res.status(500).send("Error occurred while creating features");
+  }
+};
+exports.deleteFeatures = async function (req, res) {
+  const { id } = req.body;
+  if (!id) {
+    return res.status(400).send("All input is required");
+  }
+  try {
+    await client.query(`DELETE from features where id ='${id}'`);
+    res.status(200).send("successfully deleteSocialMedia");
+  } catch (err) {
+    console.log(err.stack);
+    res.status(500).send("Error occurred while creating features");
+  }
+};
+exports.updateFeatures = async function (req, res) {
+  const { id, title, trtext, entext } = req.body;
+
+  if (!(title && trtext && entext && id)) {
+    return res.status(400).send("All input is required");
+  }
+  try {
+    const values = [title, trtext, entext, id];
+    const sql = "UPDATE features SET title=$1, trtext=$2,entext=$3 WHERE id=$4";
+    const result = await client.query(sql, values);
+    res.status(200).send("successfully created location");
+  } catch (err) {
+    console.log(err.stack);
+    res.status(500).send("Error occurred while creating features");
   }
 };
