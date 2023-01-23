@@ -73,7 +73,7 @@ exports.getSocialMediaList = async function (req, res) {
 };
 exports.createSocialMedia = async function (req, res) {
   const { socialmedia, username } = req.body;
-
+  console.log(req.body);
   if (!(socialmedia && username)) {
     return res.status(400).send("All input is required");
   }
@@ -103,15 +103,14 @@ exports.deleteSocialMedia = async function (req, res) {
   }
 };
 exports.updateSocialMedia = async function (req, res) {
-  const { id, socialmedia, username } = req.body;
+  const { id, username } = req.body;
 
-  if (!(socialmedia && username && id)) {
+  if (!(username && id)) {
     return res.status(400).send("All input is required");
   }
   try {
-    const values = [socialmedia, username, id];
-    const sql =
-      "UPDATE socialmedialist SET socialmedia=$1, username=$2 WHERE id=$3";
+    const values = [username, id];
+    const sql = "UPDATE socialmedialist SET  username=$1 WHERE id=$2";
     const result = await client.query(sql, values);
     res.status(200).send("successfully created location");
   } catch (err) {
@@ -173,6 +172,31 @@ exports.updateFeatures = async function (req, res) {
     const sql = "UPDATE features SET title=$1, trtext=$2,entext=$3 WHERE id=$4";
     const result = await client.query(sql, values);
     res.status(200).send("successfully created location");
+  } catch (err) {
+    console.log(err.stack);
+    res.status(500).send("Error occurred while creating features");
+  }
+};
+
+//contact form
+exports.getConcactForm = async function (req, res) {
+  var sql = `select * from contactform `;
+  const result = await client.query(sql);
+  res.status(200).send(result.rows);
+};
+exports.createConcactForm = async function (req, res) {
+  const { email, message, name, phone } = req.body;
+
+  if (!(email && message && name && phone)) {
+    return res.status(400).send("All input is required");
+  }
+
+  try {
+    const values = [email, message, name, phone];
+    const sql =
+      "INSERT INTO contactform (email, name, phone, message, date) VALUES ($1, $2,$3,$4, now())";
+    const result = await client.query(sql, values);
+    res.status(200).send("successfully createConcactForm");
   } catch (err) {
     console.log(err.stack);
     res.status(500).send("Error occurred while creating features");

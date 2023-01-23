@@ -11,11 +11,13 @@ const {
   deleteSocialMedia,
   updateSocialMedia,
 
-  
   getFeatures,
-createFeatures,
-deleteFeatures,
-updateFeatures,
+  createFeatures,
+  deleteFeatures,
+  updateFeatures,
+
+  getConcactForm,
+  createConcactForm,
 } = require("../controllers/other.js");
 
 const router = express.Router();
@@ -36,5 +38,9 @@ router.get("/features", getFeatures);
 router.post("/features", createFeatures);
 router.delete("/features", deleteFeatures);
 router.put("/features", updateFeatures);
+
+//contact form
+router.get("/contactform", getConcactForm);
+router.post("/contactform", createConcactForm);
 
 module.exports = router;

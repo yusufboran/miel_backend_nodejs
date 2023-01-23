@@ -80,7 +80,6 @@ exports.createProject = async function (req, res) {
 
 exports.deleteProject = async function (req, res) {
   const { id } = req.body;
-console.log(req.body)
   if (!id) {
     return res.status(400).send("All input is required");
   }
