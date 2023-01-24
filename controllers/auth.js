@@ -1,30 +1,6 @@
 const client = require("../db");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-
-let users = [
-  {
-    name: "jhon",
-    age: 20,
-    id: 1,
-  },
-  {
-    name: "amanda",
-    age: 22,
-    id: 2,
-  },
-  {
-    name: "rick",
-    age: 120,
-    id: 3,
-  },
-];
-
-exports.getUser = function (req, res) {
-  var userId = req.body.id;
-
-  res.json(users);
-};
+const crypto = require("crypto");
 
 exports.register = async function (req, res) {
   try {
@@ -69,13 +45,7 @@ exports.login = async function (req, res) {
     if (!validPassword)
       return res.status(401).json({ error: "Incorrect password" });
 
-    let jwtSecretKey = "deneme";
-    let data = {
-      time: Date(),
-      userId: 12,
-    };
-
-    const token = jwt.sign(data, jwtSecretKey);
+    const token = tokenGenerator();
     return res.status(200).json({
       token: token,
       username: username,
@@ -85,34 +55,21 @@ exports.login = async function (req, res) {
     console.error(error.stack);
   }
 };
-
 exports.deleteUser = function (req, res) {
-  // DELETE FROM public.userlist WHERE user_id = '1'
-
-  const userId = req.params.id;
-
-  users = users.filter(function (user) {
-    return user.id !== userId;
-  });
-
-  res.json(users);
+  res.json("deleteUser");
+};
+exports.updateUser = function (req, res) {
+  res.json("updateUser");
 };
 
-exports.updateUser = function (req, res) {
-  const userId = req.params.id;
-  const { age, name } = req.body;
+tokenGenerator = function (req, res) {
+  var time = new Date();
+  time.setTime(time.getTime() + 1800000);
+  time.setTime(time.getTime() - time.getTimezoneOffset() * 60000);
+  var token = crypto.randomBytes(48).toString("hex");
 
-  users = users.map(function (user) {
-    if (user.id === userId) {
-      return {
-        name,
-        age,
-        id: user.id,
-      };
-    }
+  var sql = `INSERT INTO token_list (final_time, "token") VALUES('${time.getTime()}', '${token}');`;
+  client.query(sql);
 
-    return user;
-  });
-
-  res.json(users);
+  return token;
 };
