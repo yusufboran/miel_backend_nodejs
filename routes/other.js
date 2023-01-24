@@ -18,6 +18,7 @@ const {
 
   getConcactForm,
   createConcactForm,
+  deleteConcactForm
 } = require("../controllers/other.js");
 
 const router = express.Router();
@@ -42,5 +43,5 @@ router.put("/features", updateFeatures);
 //contact form
 router.get("/contactform", getConcactForm);
 router.post("/contactform", createConcactForm);
-
+router.delete("/contactform", deleteConcactForm);
 module.exports = router;

@@ -202,3 +202,17 @@ exports.createConcactForm = async function (req, res) {
     res.status(500).send("Error occurred while creating features");
   }
 };
+
+exports.deleteConcactForm = async function (req, res) {
+  const { id } = req.body;
+  if (!id) {
+    return res.status(400).send("All input is required");
+  }
+  try {
+    await client.query(`DELETE from contactform where id ='${id}'`);
+    res.status(200).send("successfully deleteSocialMedia");
+  } catch (err) {
+    console.log(err.stack);
+    res.status(500).send("Error occurred while creating features");
+  }
+};
