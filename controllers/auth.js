@@ -48,8 +48,7 @@ exports.login = async function (req, res) {
     const token = tokenGenerator();
     return res.status(200).json({
       token: token,
-      username: username,
-      password: password,
+      email: username,
     });
   } catch (error) {
     console.error(error.stack);

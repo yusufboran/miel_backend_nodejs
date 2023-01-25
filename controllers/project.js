@@ -11,7 +11,7 @@ exports.getProject = async function (req, res) {
   const { id } = req.params;
   console.log("getProject");
   if (!id) {
-    return res.status(400).send("All input is required");
+    return res.status(412).send("All input is required");
   }
 
   try {
@@ -49,12 +49,28 @@ exports.upload = async function (req, res) {
   });
 };
 exports.createProject = async function (req, res) {
-  const { descriptionEN, descriptionTR, projectName, features, paths } =
+  const { descriptionEN, descriptionTR, projectName, features, paths, token } =
     req.body;
 
-  if (!(descriptionEN && descriptionTR && projectName && features && paths)) {
-    return res.status(400).send("All input is required");
+  if (
+    !(
+      descriptionEN &&
+      descriptionTR &&
+      projectName &&
+      features &&
+      paths &&
+      token
+    )
+  ) {
+    return res.status(412).send("All input is required");
   }
+
+  var tokenSql = `select final_time from token_list where token ='${token}'`;
+  var tokenSqlResult = await client.query(tokenSql);
+  var tokenTime = tokenSqlResult.rows[0]["final_time"];
+
+  if (tokenTime < Date.now())
+    return res.status(401).send("Token is out of date");
 
   var pid = Date.now().toString(16).toUpperCase();
 
@@ -81,7 +97,7 @@ exports.createProject = async function (req, res) {
 exports.deleteProject = async function (req, res) {
   const { id } = req.body;
   if (!id) {
-    return res.status(400).send("All input is required");
+    return res.status(412).send("All input is required");
   }
   try {
     var sql = `select paths from project where pid ='${id}'`;
