@@ -1,4 +1,5 @@
 const client = require("../db");
+const { checkTokenValidity } = require("./token");
 
 //location queries
 exports.getMapList = async function (req, res) {
@@ -88,12 +89,15 @@ exports.getSocialMediaList = async function (req, res) {
   }
 };
 exports.createSocialMedia = async function (req, res) {
-  const { socialmedia, username } = req.body;
+  const { socialmedia, username, token } = req.body;
   console.log(req.body);
-  if (!(socialmedia && username)) {
+  if (!(socialmedia && username && token)) {
     return res.status(400).send("All input is required");
   }
-
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
+  }
   try {
     const values = [socialmedia, username];
     const sql =
@@ -106,9 +110,13 @@ exports.createSocialMedia = async function (req, res) {
   }
 };
 exports.deleteSocialMedia = async function (req, res) {
-  const { id } = req.body;
-  if (!id) {
+  const { id, token } = req.body;
+  if (!(id && token)) {
     return res.status(400).send("All input is required");
+  }
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
   }
   try {
     await client.query(`DELETE from socialmedialist where id ='${id}'`);
@@ -119,10 +127,15 @@ exports.deleteSocialMedia = async function (req, res) {
   }
 };
 exports.updateSocialMedia = async function (req, res) {
-  const { id, username } = req.body;
+  const { id, username, token } = req.body;
 
-  if (!(username && id)) {
+  if (!(username && id && token)) {
     return res.status(400).send("All input is required");
+  }
+
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
   }
   try {
     const values = [username, id];
@@ -147,12 +160,15 @@ exports.getFeatures = async function (req, res) {
   }
 };
 exports.createFeatures = async function (req, res) {
-  const { title, trtext, entext } = req.body;
+  const { title, trtext, entext, token } = req.body;
 
-  if (!(title && trtext && entext)) {
+  if (!(title && trtext && entext && token)) {
     return res.status(400).send("All input is required");
   }
-
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
+  }
   try {
     const values = [title, trtext, entext];
     const sql =
@@ -165,9 +181,14 @@ exports.createFeatures = async function (req, res) {
   }
 };
 exports.deleteFeatures = async function (req, res) {
-  const { id } = req.body;
-  if (!id) {
+  const { id, token } = req.body;
+  if (!(id && token)) {
     return res.status(400).send("All input is required");
+  }
+
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
   }
   try {
     await client.query(`DELETE from features where id ='${id}'`);
@@ -178,10 +199,15 @@ exports.deleteFeatures = async function (req, res) {
   }
 };
 exports.updateFeatures = async function (req, res) {
-  const { id, title, trtext, entext } = req.body;
+  const { id, title, trtext, entext, token } = req.body;
 
-  if (!(title && trtext && entext && id)) {
+  if (!(title && trtext && entext && id && token)) {
     return res.status(400).send("All input is required");
+  }
+
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
   }
   try {
     const values = [title, trtext, entext, id];
@@ -220,9 +246,13 @@ exports.createConcactForm = async function (req, res) {
 };
 
 exports.deleteConcactForm = async function (req, res) {
-  const { id } = req.body;
-  if (!id) {
+  const { id, token } = req.body;
+  if (!(id && token)) {
     return res.status(400).send("All input is required");
+  }
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
   }
   try {
     await client.query(`DELETE from contactform where id ='${id}'`);
@@ -232,20 +262,3 @@ exports.deleteConcactForm = async function (req, res) {
     res.status(500).send("Error occurred while creating features");
   }
 };
-
-async function checkTokenValidity(token) {
-  try {
-    const result = await client.query(
-      `SELECT final_time FROM public.token_list where "token" = '${token}'`
-    );
-    var tokenTime = parseInt(result.rows[0].final_time);
-    var now = Date.now();
-
-    if (tokenTime > now) {
-      return true;
-    }
-    return false;
-  } catch (error) {
-    return false;
-  }
-}

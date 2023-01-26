@@ -1,6 +1,6 @@
 const client = require("../db");
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
+const { tokenGenerator } = require("./token");
 
 exports.register = async function (req, res) {
   try {
@@ -59,16 +59,4 @@ exports.deleteUser = function (req, res) {
 };
 exports.updateUser = function (req, res) {
   res.json("updateUser");
-};
-
-tokenGenerator = function (req, res) {
-  var time = new Date();
-  time.setTime(time.getTime() + 1800000);
-  time.setTime(time.getTime() - time.getTimezoneOffset() * 60000);
-  var token = crypto.randomBytes(48).toString("hex");
-
-  var sql = `INSERT INTO token_list (final_time, "token") VALUES('${time.getTime()}', '${token}');`;
-  client.query(sql);
-
-  return token;
 };

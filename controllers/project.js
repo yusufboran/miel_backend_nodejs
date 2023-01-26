@@ -1,6 +1,7 @@
 const client = require("../db");
 var { unlink } = require("node:fs");
 const multer = require("multer");
+const { checkTokenValidity } = require("./token");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -40,7 +41,13 @@ exports.getProjectList = async function (req, res) {
 };
 
 exports.upload = async function (req, res) {
-  console.log(req.headers);
+  const token = req.headers.authorization;
+
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
+  }
+
   uploads.array("files")(req, res, function (err) {
     res.json(`files ${req.files}...`);
   });
@@ -60,6 +67,11 @@ exports.createProject = async function (req, res) {
     )
   ) {
     return res.status(412).send("All input is required");
+  }
+
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
   }
 
   var tokenSql = `select final_time from token_list where token ='${token}'`;
@@ -92,21 +104,30 @@ exports.createProject = async function (req, res) {
 };
 
 exports.deleteProject = async function (req, res) {
-  const { id } = req.body;
-  if (!id) {
+  const { id, token } = req.body;
+  if (!(id, token)) {
     return res.status(412).send("All input is required");
+  }
+
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
   }
   try {
     var sql = `select paths from project where pid ='${id}'`;
-    console.log(sql);
 
     const result = await client.query(sql);
     console.log(result.rows[0].paths);
 
     result.rows[0].paths.map((path) => {
       unlink(`./uploads/${path}`, (err) => {
-        if (err) throw err;
-        console.log("delete successfully deleted project");
+        if (err) {
+          console.error(err);
+          return res
+            .status(500)
+            .send("Error occurred while deleting the project files");
+        }
+        console.log(`Successfully deleted file: ${path}`);
       });
     });
 
