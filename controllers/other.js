@@ -12,11 +12,16 @@ exports.getMapList = async function (req, res) {
   }
 };
 exports.createMapLocaiton = async function (req, res) {
-  const { name, address, phone, location, image } = req.body;
+  const { name, address, phone, location, image, token } = req.body;
 
-  if (!(name && address && phone && location && image)) {
+  if (!(name && address && phone && location && image && token)) {
     return res.status(400).send("All input is required");
   }
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
+  }
+
   try {
     var lid = Date.now().toString(16).toUpperCase();
     // console.log(new Date(parseInt("185C367C49D", 16))); 16 to 10
@@ -31,10 +36,16 @@ exports.createMapLocaiton = async function (req, res) {
   }
 };
 exports.deleteMap = async function (req, res) {
-  const { id } = req.body;
-  if (!id) {
+  const { id, token } = req.body;
+  if (!(id && token)) {
     return res.status(400).send("All input is required");
   }
+
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
+  }
+
   try {
     await client.query(`DELETE from locations where lid ='${id}'`);
     res.status(200).send("successfully deleteMap");
@@ -44,10 +55,15 @@ exports.deleteMap = async function (req, res) {
   }
 };
 exports.updateMap = async function (req, res) {
-  const { lid, name, address, phone, location, image } = req.body;
-  if (!(name && address && phone && location && image)) {
+  const { lid, name, address, phone, location, image, token } = req.body;
+  if (!(name && address && phone && location && image && token)) {
     return res.status(400).send("All input is required");
   }
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
+  }
+
   try {
     const values = [name, address, phone, location, image, lid];
     const sql =
@@ -216,3 +232,20 @@ exports.deleteConcactForm = async function (req, res) {
     res.status(500).send("Error occurred while creating features");
   }
 };
+
+async function checkTokenValidity(token) {
+  try {
+    const result = await client.query(
+      `SELECT final_time FROM public.token_list where "token" = '${token}'`
+    );
+    var tokenTime = parseInt(result.rows[0].final_time);
+    var now = Date.now();
+
+    if (tokenTime > now) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
+}

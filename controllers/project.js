@@ -15,16 +15,13 @@ exports.getProject = async function (req, res) {
   }
 
   try {
-    var sql = `select paths from project where pid ='${id}'`;
+    var sql = `select * from project where pid ='${id}'`;
     console.log(sql);
 
     const result = await client.query(sql);
     console.log(result.rows[0].paths);
 
-    res.status(200).json({
-      messega: "successfully deleteProject",
-      data: result.rows[0].paths,
-    });
+    res.status(200).json(result.rows[0]);
   } catch (err) {
     console.log(err.stack);
     res.status(500).send("Error occurred while creating project");
