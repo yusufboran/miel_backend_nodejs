@@ -41,13 +41,6 @@ exports.getProjectList = async function (req, res) {
 };
 
 exports.upload = async function (req, res) {
-  const token = req.headers.authorization;
-
-  const isTokenValid = await checkTokenValidity(token);
-  if (!isTokenValid) {
-    return res.status(401).send("Token is invalid");
-  }
-
   uploads.array("files")(req, res, function (err) {
     res.json(`files ${req.files}...`);
   });
