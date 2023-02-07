@@ -31,7 +31,13 @@ exports.getProject = async function (req, res) {
 
 exports.getProjectList = async function (req, res) {
   try {
-    var sql = `select * from project `;
+    var sql = `SELECT p.id, p.projectname, p.descriptionen, p.descriptiontr, p.features, p.created_at, p.pid, 
+    array_agg(json_build_object('id', pf.id, 'image_path', pf.image_path)) AS paths 
+    FROM project p 
+    INNER JOIN project_file pf 
+    ON p.pid = pf.project 
+    GROUP BY p.id, p.projectname, p.descriptionen, p.descriptiontr, p.features, p.created_at, p.pid;
+     `;
     const result = await client.query(sql);
     res.status(200).send(result.rows);
   } catch (err) {
@@ -67,29 +73,22 @@ exports.createProject = async function (req, res) {
     return res.status(401).send("Token is invalid");
   }
 
-  var tokenSql = `select final_time from token_list where token ='${token}'`;
-  var tokenSqlResult = await client.query(tokenSql);
-  var tokenTime = tokenSqlResult.rows[0]["final_time"];
-
-  if (tokenTime < Date.now())
-    return res.status(401).send("Token is out of date");
-
   var pid = Date.now().toString(16).toUpperCase();
 
-  const values = [
-    projectName,
-    descriptionEN,
-    descriptionTR,
-    features,
-    paths,
-    pid,
-  ];
-  const sql =
-    "INSERT INTO project (projectname,descriptionen,descriptiontr,features, paths,created_at ,pid) VALUES ($1, $2, $3, $4, $5,now(),$6)";
+  const values = [projectName, descriptionEN, descriptionTR, features, pid];
+
+  const sql = `INSERT INTO project 
+  (projectname,descriptionen,descriptiontr,features, pid ,created_at) 
+    VALUES ($1, $2, $3, $4, $5,now())`;
 
   try {
-    const result = await client.query(sql, values);
+    await client.query(sql, values);
     res.status(200).send("successfully created project");
+    paths.forEach(async (path) => {
+      await client.query(
+        `INSERT INTO public.project_file (project, image_path)  VALUES('${pid}', '${path}'); `
+      );
+    });
   } catch (err) {
     console.log(err.stack);
     res.status(500).send("Error occurred while creating project");
@@ -107,20 +106,19 @@ exports.deleteProject = async function (req, res) {
     return res.status(401).send("Token is invalid");
   }
   try {
-    var sql = `select paths from project where pid ='${id}'`;
+    var sql = `select * from project_file where project ='${id}'`;
 
-    const result = await client.query(sql);
-    console.log(result.rows[0].paths);
-
-    result.rows[0].paths.map((path) => {
-      unlink(`./uploads/${path}`, (err) => {
-        if (err) {
-          console.error(err);
-          return res
-            .status(500)
-            .send("Error occurred while deleting the project files");
-        }
-        console.log(`Successfully deleted file: ${path}`);
+    const result = await client.query(sql).then((imgList) => {
+      imgList.rows.forEach((img) => {
+        unlink(`./uploads/${img.image_path}`, (err) => {
+          if (err) {
+            console.error(err);
+            return res
+              .status(500)
+              .send("Error occurred while deleting the project files");
+          }
+          console.log(`Successfully deleted file: ${path}`);
+        });
       });
     });
 
