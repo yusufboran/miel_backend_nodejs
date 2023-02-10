@@ -130,8 +130,27 @@ exports.deleteProject = async function (req, res) {
   }
 };
 
-exports.updateUser = function (req, res) {
-  res.json("updateUser");
+exports.updateUser = async function (req, res) {
+  const { descriptionEN, descriptionTR, projectName, features, paths, token } =
+    req.body;
+
+  if (
+    !(
+      descriptionEN &&
+      descriptionTR &&
+      projectName &&
+      features &&
+      paths &&
+      token
+    )
+  ) {
+    return res.status(412).send("All input is required");
+  }
+
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
+  }
 };
 
 // Uploaded functions

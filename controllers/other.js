@@ -1,5 +1,6 @@
 const client = require("../db");
 const { checkTokenValidity } = require("./token");
+var { unlink } = require("node:fs");
 
 //location queries
 exports.getMapList = async function (req, res) {
@@ -260,5 +261,47 @@ exports.deleteConcactForm = async function (req, res) {
   } catch (err) {
     console.log(err.stack);
     res.status(500).send("Error occurred while creating features");
+  }
+};
+
+//about page
+exports.getAboutContext = async function (req, res) {
+  var sql = `select * from about_page `;
+  const result = await client.query(sql);
+  res.status(200).send(result.rows);
+};
+exports.createAboutContext = async function (req, res) {
+  const { title, image_path, context, token } = req.body;
+
+  if (!(title && image_path && context && token)) {
+    return res.status(400).send("All input is required");
+  }
+  const isTokenValid = await checkTokenValidity(token);
+  if (!isTokenValid) {
+    return res.status(401).send("Token is invalid");
+  }
+
+  var sql = `select image_path from about_page  where title= '${title}'`;
+  var deleteImg = await client.query(sql);
+
+  try {
+    var sql = `UPDATE about_page 
+    SET image_path='${image_path}', 
+    context='${context}'  where title= '${title}'`;
+    const result = await client.query(sql);
+    res.status(200).send("successfully About Page");
+
+    unlink(`./uploads/${deleteImg.rows[0].image_path}`, (err) => {
+      if (err) {
+        console.error(err);
+        return res
+          .status(500)
+          .send("Error occurred while deleting the project files");
+      }
+      console.log(`Successfully deleted file: ${deleteImg.rows[0].image_path}`);
+    });
+  } catch (err) {
+    console.log(err.stack);
+    res.status(500).send("Error occurred while creating About Page");
   }
 };

@@ -18,7 +18,10 @@ const {
 
   getConcactForm,
   createConcactForm,
-  deleteConcactForm
+  deleteConcactForm,
+
+  getAboutContext,
+  createAboutContext,
 } = require("../controllers/other.js");
 
 const router = express.Router();
@@ -44,4 +47,9 @@ router.put("/features", updateFeatures);
 router.get("/contactform", getConcactForm);
 router.post("/contactform", createConcactForm);
 router.delete("/contactform", deleteConcactForm);
+
+//about page
+router.get("/about", getAboutContext);
+router.post("/about", createAboutContext);
+
 module.exports = router;
