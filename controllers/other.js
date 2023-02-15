@@ -1,5 +1,6 @@
 const client = require("../db");
 const { checkTokenValidity } = require("./token");
+const nodemailer = require("nodemailer");
 var { unlink } = require("node:fs");
 
 //location queries
@@ -233,6 +234,24 @@ exports.createConcactForm = async function (req, res) {
   if (!(email && message && name && phone)) {
     return res.status(400).send("All input is required");
   }
+
+  let transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "yusuf.boran@rbbt.com.tr",
+      pass: "qyygdxyzzivrodvi",
+    },
+  });
+  let mailOptions = {
+    from: "yusuf.boran@rbbt.com.tr",
+    to: email,
+    subject: "Nodemailer Test",
+    html: `<p>Sayın ${name} <br> Mesajınız alınmıştır. En kısa zamanda arkadaşlarımız sizinle iletişime geçecektir.</p>`,
+  };
+  transporter.sendMail(mailOptions, (err, data) => {
+    if (err) console.log(err);
+    else console.log("mail gonderildi");
+  });
 
   try {
     const values = [email, message, name, phone];
