@@ -10,17 +10,14 @@ const shell = require("shelljs");
 
 exports.getProject = async function (req, res) {
   const { id } = req.params;
-  console.log("getProject");
   if (!id) {
     return res.status(412).send("All input is required");
   }
 
   try {
     var sql = `select * from project where pid ='${id}'`;
-    console.log(sql);
 
     const result = await client.query(sql);
-    console.log(result.rows[0].paths);
 
     res.status(200).json(result.rows[0]);
   } catch (err) {
@@ -117,7 +114,6 @@ exports.deleteProject = async function (req, res) {
               .status(500)
               .send("Error occurred while deleting the project files");
           }
-          console.log(`Successfully deleted file: ${path}`);
         });
       });
     });
@@ -131,17 +127,26 @@ exports.deleteProject = async function (req, res) {
 };
 
 exports.updateUser = async function (req, res) {
-  const { descriptionEN, descriptionTR, projectName, features, paths, token } =
-    req.body;
-
+  const {
+    token,
+    pid,
+    projectName,
+    descriptionEN,
+    descriptionTR,
+    features,
+    paths,
+    uploadPic,
+  } = req.body;
   if (
     !(
       descriptionEN &&
       descriptionTR &&
       projectName &&
       features &&
+      token &&
       paths &&
-      token
+      pid &&
+      uploadPic
     )
   ) {
     return res.status(412).send("All input is required");
@@ -150,6 +155,27 @@ exports.updateUser = async function (req, res) {
   const isTokenValid = await checkTokenValidity(token);
   if (!isTokenValid) {
     return res.status(401).send("Token is invalid");
+  }
+
+  try {
+    const values = [pid, projectName, descriptionEN, descriptionTR, features];
+    const sql = `UPDATE project SET projectName=$2, descriptionEN=$3, descriptionTR=$4, features=$5, created_at=now() WHERE pid=$1;`;
+    await client.query(sql, values);
+
+    uploadPic.forEach(async (image) => {
+      if (image.isDelete)
+        await client.query(`delete from project_file where id =${image.id}`);
+    });
+
+    paths.forEach(async (path) => {
+      await client.query(
+        `INSERT INTO public.project_file (project, image_path)  VALUES('${pid}', '${path}'); `
+      );
+    });
+    res.status(200).send("successfully created project");
+  } catch (err) {
+    console.log(err.stack);
+    res.status(500).send("Error occurred while creating project");
   }
 };
 
