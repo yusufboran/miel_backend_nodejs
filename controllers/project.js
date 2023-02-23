@@ -10,14 +10,24 @@ const shell = require("shelljs");
 
 exports.getProject = async function (req, res) {
   const { id } = req.params;
+  console.log("getProject");
   if (!id) {
     return res.status(412).send("All input is required");
   }
 
   try {
-    var sql = `select * from project where pid ='${id}'`;
+    var sql = `SELECT p.id, p.projectname, p.descriptionen, p.descriptiontr, p.features, p.created_at, p.pid, 
+    array_agg(json_build_object('id', pf.id, 'image_path', pf.image_path)) AS paths 
+    FROM project p 
+    INNER JOIN project_file pf 
+    ON p.pid = pf.project  where pid ='${id}'
+    GROUP BY p.id, p.projectname, p.descriptionen, p.descriptiontr, p.features, p.created_at, p.pid;
+     `;
+
+    console.log(sql);
 
     const result = await client.query(sql);
+    console.log(result.rows[0].paths);
 
     res.status(200).json(result.rows[0]);
   } catch (err) {
@@ -114,6 +124,7 @@ exports.deleteProject = async function (req, res) {
               .status(500)
               .send("Error occurred while deleting the project files");
           }
+          console.log(`Successfully deleted file: ${path}`);
         });
       });
     });
@@ -137,6 +148,8 @@ exports.updateUser = async function (req, res) {
     paths,
     uploadPic,
   } = req.body;
+  console.log("updateUser request: ");
+  console.log(req.body);
   if (
     !(
       descriptionEN &&
@@ -159,7 +172,9 @@ exports.updateUser = async function (req, res) {
 
   try {
     const values = [pid, projectName, descriptionEN, descriptionTR, features];
+
     const sql = `UPDATE project SET projectName=$2, descriptionEN=$3, descriptionTR=$4, features=$5, created_at=now() WHERE pid=$1;`;
+
     await client.query(sql, values);
 
     uploadPic.forEach(async (image) => {

@@ -290,9 +290,9 @@ exports.getAboutContext = async function (req, res) {
   res.status(200).send(result.rows);
 };
 exports.createAboutContext = async function (req, res) {
-  const { title, image_path, context, token } = req.body;
-
-  if (!(title && image_path && context && token)) {
+  const { title, image_path, token, contextTr, contextEn } = req.body;
+  console.log(req.body);
+  if (!(title && image_path && contextTr && contextEn && token)) {
     return res.status(400).send("All input is required");
   }
   const isTokenValid = await checkTokenValidity(token);
@@ -306,7 +306,8 @@ exports.createAboutContext = async function (req, res) {
   try {
     var sql = `UPDATE about_page 
     SET image_path='${image_path}', 
-    context='${context}'  where title= '${title}'`;
+    context='${contextTr}' ,
+    context_tr='${contextTr}' ,context_en='${contextEn}'  where title= '${title}'`;
     const result = await client.query(sql);
     res.status(200).send("successfully About Page");
 
