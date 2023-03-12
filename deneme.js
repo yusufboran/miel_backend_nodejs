@@ -1,16 +1,18 @@
-var mysql      = require('mysql');
-var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'mielproje',
-  password : 'nQs62KLIYPHvgQa',
-  database : 'mielproje'
+const mariadb = require("mariadb");
+const pool = mariadb.createPool({
+  host: "localhost",
+  user: "root",
+  connectionLimit: 5,
 });
- 
-connection.connect();
- 
-connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
-  if (error) throw error;
-  console.log('The solution is: ', results[0].solution);
-});
- 
-connection.end();
+
+let conn;
+try {
+  conn = pool.getConnection();
+  const rows = conn.query("SELECT 1 as val");
+  // rows: [ {val: 1}, meta: ... ]
+
+  const res = conn.query("INSERT INTO myTable value (?, ?)", [1, "mariadb"]);
+  // res: { affectedRows: 1, insertId: 1, warningStatus: 0 }
+} finally {
+  if (conn) conn.release(); //release to pool
+}
